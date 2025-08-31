@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title id="pageTitle">智能小车控制中心 - 液态玻璃版</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* 根变量 */
+        :root {
+            /* 深色模式 (默认) */
+            --bg-color-dark: #121212;
+            --main-glass-color: rgba(255, 255, 255, 0.08);
+            --card-glass-color: rgba(255, 255, 255, 0.05);
+            --text-color: #f5f5f7;
+            --primary-color: #007aff;
+            --status-color: #34c759;
+            --shadow-dark: rgba(0, 0, 0, 0.3);
+            --border-radius: 12px;
+            --blur-amount: 15px;
+
+            /* 深色模式渐变色 */
+            --gradient-start: #2c3e50;
+            --gradient-end: #1a1a1a;
+        }
+
+        /* 浅色模式变量 */
+        body.light-mode {
+            --bg-color-dark: #f0f0f5;
+            --main-glass-color: rgba(0, 0, 0, 0.08);
+            --card-glass-color: rgba(0, 0, 0, 0.05);
+            --text-color: #1c1c1e;
+            --primary-color: #007aff;
+            --status-color: #34c759;
+            --shadow-dark: rgba(0, 0, 0, 0.3);
+
+            /* 浅色模式渐变色 */
+            --gradient-start: #ffffff;
+            --gradient-end: #f0f2f5;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
+            
+            /* 渐变背景 */
+            background: radial-gradient(circle at center, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            background: var(--main-glass-color);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 30px var(--shadow-dark);
+            backdrop-filter: blur(var(--blur-amount));
+            max-width: 400px;
+            width: 90%;
+            transition: all 0.5s ease-in-out;
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        h1 {
+            font-weight: 300;
+            font-size: 2.5em;
+            margin: 0 0 20px;
+            letter-spacing: -1px;
+            transition: color 0.5s ease-in-out;
+        }
+
+        /* 状态卡片 */
+        .status-card {
+            background: var(--card-glass-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            backdrop-filter: blur(var(--blur-amount));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px var(--shadow-dark);
+            transition: all 0.5s ease-in-out;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1em;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-weight: 300;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            color: var(--text-color);
+            font-weight: 400;
+            opacity: 0.7;
+            transition: color 0.5s ease-in-out, opacity 0.5s ease-in-out;
+        }
+        
+        .value-display {
+            font-weight: 500;
+            color: var(--text-color);
+            transition: color 0.5s ease-in-out;
+        }
+
+        /* 轮盘样式 */
+        #joystick-container {
+            width: 200px;
+            height: 200px;
+            background: var(--card-glass-color);
+            border-radius: 50%;
+            position: relative;
+            margin: 0 auto 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(var(--blur-amount));
+            transition: all 0.5s ease-in-out;
+        }
+
+        #joystick-handle {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            box-shadow: 0 0 15px rgba(0, 122, 255, 0.6);
+            /* 移除这里的 transition，我们将用 JavaScript 动态控制 */
+            transition: none; 
+        }
+
+        /* 专门用于平滑回弹的 CSS 类 */
+        #joystick-handle.smooth-transition {
+            transition: transform 0.2s ease-out;
+        }
+        
+        .speed-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--card-glass-color);
+            margin-top: 15px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.5s ease-in-out;
+        }
+
+        body.light-mode .speed-bar {
+            background-color: #d1d1d6;
+        }
+
+        .speed-bar-fill {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease-in-out;
+        }
+
+        .toggle-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            background: var(--card-glass-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            backdrop-filter: blur(var(--blur-amount));
+            transition: all 0.3s ease-in-out;
+        }
+
+        .toggle-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="mainTitle">小车控制</h1>
+        
+        <div class="status-card">
+            <div class="status-item">
+                <span id="labelDirection" class="status-label">车辆状态</span>
+                <span id="direction" class="value-display">停止</span>
+            </div>
+            <div class="status-item">
+                <span id="labelLeftSpeed" class="status-label">左侧速度</span>
+                <span id="left_speed" class="value-display">0</span>
+            </div>
+            <div class="status-item">
+                <span id="labelRightSpeed" class="status-label">右侧速度</span>
+                <span id="right_speed" class="value-display">0</span>
+            </div>
+        </div>
+        
+        <div id="joystick-container">
+            <div id="joystick-handle" class="smooth-transition"></div>
+        </div>
+        
+        <div class="speed-bar">
+            <div id="speed-fill" class="speed-bar-fill"></div>
+        </div>
+    </div>
+
+    <div class="toggle-container">
+        <button id="theme-toggle-btn" class="toggle-btn">切换模式</button>
+        <button id="lang-toggle-btn" class="toggle-btn">English</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const joystickContainer = document.getElementById('joystick-container');
+        const joystickHandle = document.getElementById('joystick-handle');
+        const directionElement = document.getElementById('direction');
+        const leftSpeedElement = document.getElementById('left_speed');
+        const rightSpeedElement = document.getElementById('right_speed');
+        const speedFillElement = document.getElementById('speed-fill');
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
+        const langToggleBtn = document.getElementById('lang-toggle-btn');
+        
+        let isDragging = false;
+        let currentLang = 'zh';
+
+        // 语言包
+        const lang = {
+            zh: {
+                pageTitle: '智能小车控制中心 - 液态玻璃版',
+                mainTitle: '小车控制',
+                labelDirection: '车辆状态',
+                labelLeftSpeed: '左侧速度',
+                labelRightSpeed: '右侧速度',
+                direction: {
+                    "forward": "前进",
+                    "backward": "后退",
+                    "forward-left": "左前方",
+                    "forward-right": "右前方",
+                    "backward-left": "左后方",
+                    "backward-right": "右后方",
+                    "pivot-left": "左原地转弯",
+                    "pivot-right": "右原地转弯",
+                    "stop": "停止"
+                },
+                themeBtn: '切换模式',
+                langBtn: 'English'
+            },
+            en: {
+                pageTitle: 'Smart Car Control Center - Liquid Glass',
+                mainTitle: 'Car Control',
+                labelDirection: 'Car Status',
+                labelLeftSpeed: 'Left Speed',
+                labelRightSpeed: 'Right Speed',
+                direction: {
+                    "forward": "Forward",
+                    "backward": "Backward",
+                    "forward-left": "Forward-Left",
+                    "forward-right": "Forward-Right",
+                    "backward-left": "Backward-Left",
+                    "backward-right": "Backward-Right",
+                    "pivot-left": "Pivot-Left",
+                    "pivot-right": "Pivot-Right",
+                    "stop": "Stop"
+                },
+                themeBtn: 'Toggle Mode',
+                langBtn: '中文'
+            }
+        };
+
+        const updateLanguage = () => {
+            const currentLangPack = lang[currentLang];
+            document.getElementById('pageTitle').textContent = currentLangPack.pageTitle;
+            document.getElementById('mainTitle').textContent = currentLangPack.mainTitle;
+            document.getElementById('labelDirection').textContent = currentLangPack.labelDirection;
+            document.getElementById('labelLeftSpeed').textContent = currentLangPack.labelLeftSpeed;
+            document.getElementById('labelRightSpeed').textContent = currentLangPack.labelRightSpeed;
+            themeToggleBtn.textContent = currentLangPack.themeBtn;
+            langToggleBtn.textContent = currentLangPack.langBtn;
+            directionElement.textContent = currentLangPack.direction[lastDirection] || "unknown";
+        };
+
+        const containerRect = joystickContainer.getBoundingClientRect();
+        const containerCenterX = containerRect.width / 2;
+        const containerCenterY = containerRect.height / 2;
+        const radius = containerRect.width / 2;
+        
+        const throttle = (fn, delay) => {
+            let inThrottle, lastFn, lastTime;
+            return function() {
+                const context = this, args = arguments;
+                if (!inThrottle) {
+                    fn.apply(context, args);
+                    lastTime = Date.now();
+                    inThrottle = true;
+                } else {
+                    clearTimeout(lastFn);
+                    lastFn = setTimeout(function() {
+                        if (Date.now() - lastTime >= delay) {
+                            fn.apply(context, args);
+                            lastTime = Date.now();
+                        }
+                    }, Math.max(delay - (Date.now() - lastTime), 0));
+                }
+            };
+        };
+
+        const throttledSendCommand = throttle(sendCommand, 50);
+
+        joystickHandle.addEventListener('mousedown', startDrag);
+        joystickHandle.addEventListener('touchstart', startDrag, { passive: false });
+        
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchend', stopDrag);
+        
+        function startDrag(e) {
+            isDragging = true;
+            e.preventDefault();
+            joystickHandle.classList.remove('smooth-transition');
+        }
+
+        function stopDrag() {
+            if (isDragging) {
+                isDragging = false;
+                joystickHandle.classList.add('smooth-transition');
+                joystickHandle.style.transform = `translate(-50%, -50%)`;
+                sendCommand(0, 0);
+            }
+        }
+        
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag, { passive: false });
+
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+
+            const rect = joystickContainer.getBoundingClientRect();
+            // 将 const 改为 let 以支持重新赋值
+            let x = clientX - rect.left - rect.width / 2;
+            let y = clientY - rect.top - rect.height / 2;
+            
+            const distance = Math.sqrt(x * x + y * y);
+            if (distance > radius) {
+                const angle = Math.atan2(y, x);
+                x = Math.cos(angle) * radius;
+                y = Math.sin(angle) * radius;
+            }
+
+            joystickHandle.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+            
+            const left_speed = -Math.round(y / radius * 100);
+            const right_speed = -Math.round(y / radius * 100);
+            const turn_speed = Math.round(x / radius * 100);
+
+            let final_left_speed = left_speed + turn_speed;
+            let final_right_speed = right_speed - turn_speed;
+
+            final_left_speed = Math.min(100, Math.max(-100, final_left_speed));
+            final_right_speed = Math.min(100, Math.max(-100, final_right_speed));
+            
+            throttledSendCommand(final_left_speed, final_right_speed);
+        }
+        
+        function sendCommand(left_speed, right_speed) {
+            socket.emit('command', { 
+                left_speed: left_speed,
+                right_speed: right_speed 
+            });
+        }
+        
+        let lastDirection = "stop";
+        socket.on('car_status', function(data) {
+            leftSpeedElement.textContent = data.left_speed;
+            rightSpeedElement.textContent = data.right_speed;
+
+            const avgSpeed = (Math.abs(data.left_speed) + Math.abs(data.right_speed)) / 2;
+            speedFillElement.style.width = `${avgSpeed}%`;
+
+            const newDirection = data.direction;
+            if (newDirection !== lastDirection) {
+                directionElement.textContent = lang[currentLang].direction[newDirection] || "unknown";
+                lastDirection = newDirection;
+            }
+        });
+
+        // 模式切换功能
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+        });
+        
+        // 语言切换功能
+        langToggleBtn.addEventListener('click', () => {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            updateLanguage();
+        });
+
+        // 初始化页面语言
+        updateLanguage();
+    </script>
+</body>
+</html>
