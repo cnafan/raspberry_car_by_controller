@@ -25,7 +25,20 @@
 ## 项目目录结构
 
 ```
-car_project/├── app/│   ├── main.py             # FastAPI 应用入口│   ├── routes.py           # HTTP / WebSocket 路由│   ├── ws_manager.py       # WebSocket 连接管理器│   ├── car_state.py        # 线程安全的全局状态│   ├── motor_controller.py # 电机驱动逻辑│   ├── joystick_handler.py # 手柄事件监听│   └── config.py           # 配置（GPIO引脚等）│├── static/│   └── index.html          # 网页控制界面│└── requirements.txt        # Python 依赖
+car_project/
+├── app/
+│   ├── main.py             # FastAPI 应用入口
+│   ├── routes.py           # HTTP / WebSocket 路由
+│   ├── ws_manager.py       # WebSocket 连接管理器
+│   ├── car_state.py        # 线程安全的全局状态
+│   ├── motor_controller.py # 电机驱动逻辑
+│   ├── joystick_handler.py # 手柄事件监听
+│   └── config.py           # 配置（GPIO引脚等）
+│
+├── static/
+│   └── index.html          # 网页控制界面
+│
+└── requirements.txt        # Python 依赖
 ```
 
 ## 安装与运行
