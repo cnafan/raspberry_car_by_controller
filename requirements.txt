@@ -1,0 +1,11 @@
+# FastAPI 和 ASGI 服务器
+fastapi
+uvicorn[standard]
+
+# 硬件控制库
+gpiozero
+pigpio
+RPi.GPIO
+
+# 手柄输入处理
+pygame
