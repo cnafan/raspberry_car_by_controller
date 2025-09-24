@@ -3,203 +3,391 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能遥控小车</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>控制中心</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        :root {
+            --bg-color-dark: #121212;
+            --main-glass-color: rgba(255, 255, 255, 0.08);
+            --card-glass-color: rgba(255, 255, 255, 0.05);
+            --text-color: #f5f5f7;
+            --primary-color: #007aff;
+            --status-connected: #34c759;
+            --status-disconnected: #ff3b30;
+            --shadow-dark: rgba(0, 0, 0, 0.3);
+            --border-radius: 12px;
+            --blur-amount: 15px;
+            --gradient-start: #2c3e50;
+            --gradient-end: #1a1a1a;
+        }
+
+        body.light-mode {
+            --bg-color-dark: #f0f0f5;
+            --main-glass-color: rgba(0, 0, 0, 0.08);
+            --card-glass-color: rgba(0, 0, 0, 0.05);
+            --text-color: #1c1c1e;
+            --gradient-start: #ffffff;
+            --gradient-end: #f0f2f5;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1a202c; /* 深色背景 */
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at center, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
         }
+
         .container {
-            max-width: 600px;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            background: var(--main-glass-color);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 30px var(--shadow-dark);
+            backdrop-filter: blur(var(--blur-amount));
+            max-width: 400px;
+            width: 90%;
+            animation: fadeIn 0.8s ease-out;
         }
-        .control-button {
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .control-button:active {
-            transform: scale(0.95);
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+
+        h1 {
+            font-weight: 300;
+            font-size: 2.2em;
+            margin: 0 0 20px;
+            letter-spacing: -0.5px;
         }
-        .state-info {
-            transition: all 0.2s ease-in-out;
+
+        .status-card {
+            background: var(--card-glass-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            backdrop-filter: blur(var(--blur-amount));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px var(--shadow-dark);
         }
-        .status-light {
-            width: 1rem;
-            height: 1rem;
-            border-radius: 50%;
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1em;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-weight: 300;
+        }
+
+        .status-item:last-child { border-bottom: none; }
+
+        .status-label { opacity: 0.7; font-weight: 400; }
+        .value-display { font-weight: 500; }
+
+        /* 连接状态指示器 */
+        #connection-status {
             display: inline-block;
-            margin-right: 0.5rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--status-disconnected);
+            margin-right: 8px;
+            vertical-align: middle;
         }
-        .status-light.connected {
-            background-color: #10b981; /* 绿色 */
-            animation: pulse 1.5s infinite;
+        #connection-status.connected {
+            background-color: var(--status-connected);
+            box-shadow: 0 0 8px var(--status-connected);
         }
-        .status-light.disconnected {
-            background-color: #ef4444; /* 红色 */
+
+        /* 转盘 */
+        #joystick-container {
+            width: 200px;
+            height: 200px;
+            background: var(--card-glass-color);
+            border-radius: 50%;
+            position: relative;
+            margin: 0 auto 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(var(--blur-amount));
         }
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.1);
-            }
+
+        #joystick-handle {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            box-shadow: 0 0 15px rgba(0, 122, 255, 0.6);
+            transition: none;
+        }
+
+        #joystick-handle.smooth-transition {
+            transition: transform 0.2s ease-out;
+        }
+
+        .speed-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--card-glass-color);
+            margin-top: 15px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .speed-bar-fill {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease-in-out;
+        }
+
+        .toggle-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            background: var(--card-glass-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            backdrop-filter: blur(var(--blur-amount));
+            transition: all 0.3s ease-in-out;
+        }
+
+        .toggle-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+<body>
+    <div class="container">
+        <h1>控制中心</h1>
 
-    <div class="container mx-auto p-6 bg-gray-800 rounded-2xl shadow-xl border border-gray-700">
-        <h1 class="text-3xl font-bold text-center mb-6 text-indigo-400">智能小车遥控</h1>
-
-        <!-- 连接状态 -->
-        <div class="flex items-center justify-center mb-6">
-            <span id="statusLight" class="status-light disconnected"></span>
-            <span id="statusText" class="text-gray-400 font-medium">未连接</span>
+        <div class="status-card">
+            <div class="status-item">
+                <span class="status-label">连接状态</span>
+                <span>
+                    <span id="connection-status"></span>
+                    <span id="connection-text">未连接</span>
+                </span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">当前方向</span>
+                <span id="direction-display" class="value-display">停止</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">左侧速度</span>
+                <span id="left-speed-display" class="value-display">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">右侧速度</span>
+                <span id="right-speed-display" class="value-display">0</span>
+            </div>
         </div>
 
-        <!-- 状态显示 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center mb-8">
-            <div class="bg-gray-700 p-4 rounded-xl state-info">
-                <p class="text-sm font-light text-gray-400">当前方向</p>
-                <p id="directionDisplay" class="text-2xl font-semibold mt-1 text-emerald-300">停止</p>
-            </div>
-            <div class="bg-gray-700 p-4 rounded-xl state-info">
-                <p class="text-sm font-light text-gray-400">当前速度</p>
-                <p id="speedDisplay" class="text-2xl font-semibold mt-1 text-emerald-300">0.0</p>
-            </div>
-            <div class="bg-gray-700 p-4 rounded-xl md:col-span-2 state-info">
-                <p class="text-sm font-light text-gray-400">控制来源</p>
-                <p id="sourceDisplay" class="text-2xl font-semibold mt-1 text-emerald-300">无</p>
-            </div>
+        <div id="joystick-container">
+            <div id="joystick-handle" class="smooth-transition"></div>
         </div>
 
-        <!-- 遥控按钮区 -->
-        <div class="grid grid-cols-3 gap-4">
-            <!-- 前进 -->
-            <button id="upBtn" class="col-start-2 control-button bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-bold py-4 px-6 rounded-full transition-colors duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-            </button>
-            <!-- 左转 -->
-            <button id="leftBtn" class="control-button bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-bold py-4 px-6 rounded-full transition-colors duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-            </button>
-            <!-- 停止 -->
-            <button id="stopBtn" class="control-button bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-bold py-4 px-6 rounded-full transition-colors duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    <circle cx="12" cy="12" r="3" />
-                </svg>
-            </button>
-            <!-- 右转 -->
-            <button id="rightBtn" class="control-button bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-bold py-4 px-6 rounded-full transition-colors duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-            </button>
-            <!-- 后退 -->
-            <button id="downBtn" class="col-start-2 control-button bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-bold py-4 px-6 rounded-full transition-colors duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
-            </button>
+        <div class="speed-bar">
+            <div id="speed-fill" class="speed-bar-fill"></div>
         </div>
     </div>
 
+    <div class="toggle-container">
+        <button id="theme-toggle-btn" class="toggle-btn">切换模式</button>
+        <button id="lang-toggle-btn" class="toggle-btn">English</button>
+    </div>
+
     <script>
-        // 确保 DOM 加载完毕
-        document.addEventListener('DOMContentLoaded', () => {
-            const upBtn = document.getElementById('upBtn');
-            const downBtn = document.getElementById('downBtn');
-            const leftBtn = document.getElementById('leftBtn');
-            const rightBtn = document.getElementById('rightBtn');
-            const stopBtn = document.getElementById('stopBtn');
-            
-            const directionDisplay = document.getElementById('directionDisplay');
-            const speedDisplay = document.getElementById('speedDisplay');
-            const sourceDisplay = document.getElementById('sourceDisplay');
-            const statusLight = document.getElementById('statusLight');
-            const statusText = document.getElementById('statusText');
+        // === WebSocket 连接 ===
+        const HOST = window.location.host;
+        const ws = new WebSocket(`ws://${HOST}/ws`);
 
-            let ws;
-            const HOST = window.location.host;
+        const connectionStatus = document.getElementById('connection-status');
+        const connectionText = document.getElementById('connection-text');
+        const directionDisplay = document.getElementById('direction-display');
+        const leftSpeedDisplay = document.getElementById('left-speed-display');
+        const rightSpeedDisplay = document.getElementById('right-speed-display');
+        const speedFill = document.getElementById('speed-fill');
 
-            function connectWebSocket() {
-                // 如果已经连接，则不重复连接
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    return;
-                }
+        ws.onopen = () => {
+            connectionStatus.classList.add('connected');
+            connectionText.textContent = '已连接';
+        };
 
-                ws = new WebSocket(`ws://${HOST}/ws`);
+        ws.onclose = () => {
+            connectionStatus.classList.remove('connected');
+            connectionText.textContent = '未连接';
+            // 尝试重连
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        };
 
-                ws.onopen = () => {
-                    console.log('WebSocket connected.');
-                    statusLight.classList.remove('disconnected');
-                    statusLight.classList.add('connected');
-                    statusText.textContent = '已连接';
-                };
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            directionDisplay.textContent = data.direction.toUpperCase();
+            // 注意：原后端只返回一个 speed，这里我们假设左右速度相同
+            leftSpeedDisplay.textContent = (data.speed * 100).toFixed(0);
+            rightSpeedDisplay.textContent = (data.speed * 100).toFixed(0);
+            speedFill.style.width = `${Math.abs(data.speed) * 100}%`;
+        };
 
-                ws.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    // 更新 UI 显示
-                    directionDisplay.textContent = data.direction.toUpperCase();
-                    speedDisplay.textContent = data.speed.toFixed(2);
-                    sourceDisplay.textContent = data.source === 'web' ? '网页' : '手柄';
-                };
+        // === 转盘控制逻辑 ===
+        const joystickContainer = document.getElementById('joystick-container');
+        const joystickHandle = document.getElementById('joystick-handle');
+        let isDragging = false;
 
-                ws.onclose = () => {
-                    console.log('WebSocket disconnected. Attempting to reconnect...');
-                    statusLight.classList.remove('connected');
-                    statusLight.classList.add('disconnected');
-                    statusText.textContent = '未连接';
-                    // 尝试在1秒后重连
-                    setTimeout(connectWebSocket, 1000);
-                };
+        const containerRect = joystickContainer.getBoundingClientRect();
+        const radius = containerRect.width / 2;
 
-                ws.onerror = (error) => {
-                    console.error('WebSocket error:', error);
-                    ws.close();
-                };
+        // 映射左右轮速度到 direction + speed（兼容现有后端）
+        function mapToDirection(left, right) {
+            const threshold = 10; // 避免抖动
+            const speed = Math.max(Math.abs(left), Math.abs(right)) / 100.0;
+
+            if (Math.abs(left) < threshold && Math.abs(right) < threshold) {
+                return { direction: 'stop', speed: 0 };
             }
 
-            // 发送控制指令到 WebSocket
-            function sendControl(direction, speed) {
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    ws.send(`${direction},${speed}`);
-                } else {
-                    console.warn('WebSocket is not open, cannot send command.');
+            if (left > 0 && right > 0 && Math.abs(left - right) < threshold) {
+                return { direction: 'forward', speed };
+            }
+            if (left < 0 && right < 0 && Math.abs(left - right) < threshold) {
+                return { direction: 'backward', speed };
+            }
+            if (left > threshold && Math.abs(right) < threshold) {
+                return { direction: 'right', speed: speed / 2 };
+            }
+            if (right > threshold && Math.abs(left) < threshold) {
+                return { direction: 'left', speed: speed / 2 };
+            }
+            // 默认前进
+            return { direction: 'forward', speed };
+        }
+
+        function sendCommand(left, right) {
+            if (ws.readyState === WebSocket.OPEN) {
+                const { direction, speed } = mapToDirection(left, right);
+                ws.send(`${direction},${speed.toFixed(2)}`);
+            }
+        }
+
+        // 节流
+        const throttle = (fn, delay) => {
+            let timer = null;
+            return (...args) => {
+                if (!timer) {
+                    fn(...args);
+                    timer = setTimeout(() => timer = null, delay);
                 }
+            };
+        };
+        const throttledSend = throttle(sendCommand, 50);
+
+        // 转盘事件
+        function startDrag(e) {
+            isDragging = true;
+            e.preventDefault();
+            joystickHandle.classList.remove('smooth-transition');
+        }
+
+        function stopDrag() {
+            if (isDragging) {
+                isDragging = false;
+                joystickHandle.classList.add('smooth-transition');
+                joystickHandle.style.transform = 'translate(-50%, -50%)';
+                sendCommand(0, 0); // 停止
+            }
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+
+            const rect = joystickContainer.getBoundingClientRect();
+            let x = clientX - rect.left - rect.width / 2;
+            let y = clientY - rect.top - rect.height / 2;
+
+            const distance = Math.sqrt(x * x + y * y);
+            if (distance > radius) {
+                const angle = Math.atan2(y, x);
+                x = Math.cos(angle) * radius;
+                y = Math.sin(angle) * radius;
             }
 
-            // 按钮事件监听
-            upBtn.addEventListener('mousedown', () => sendControl('forward', 1.0));
-            downBtn.addEventListener('mousedown', () => sendControl('backward', 1.0));
-            leftBtn.addEventListener('mousedown', () => sendControl('left', 0.5)); // 假设转向速度较慢
-            rightBtn.addEventListener('mousedown', () => sendControl('right', 0.5));
-            stopBtn.addEventListener('mousedown', () => sendControl('stop', 0.0));
+            joystickHandle.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
 
-            // 添加触控事件（适用于移动设备）
-            upBtn.addEventListener('touchstart', (e) => { e.preventDefault(); sendControl('forward', 1.0); });
-            downBtn.addEventListener('touchstart', (e) => { e.preventDefault(); sendControl('backward', 1.0); });
-            leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); sendControl('left', 0.5); });
-            rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); sendControl('right', 0.5); });
-            stopBtn.addEventListener('touchstart', (e) => { e.preventDefault(); sendControl('stop', 0.0); });
+            const normalizedX = x / radius;
+            const normalizedY = -y / radius; // Y轴反转：上为正
 
-            // 鼠标抬起或触控结束时发送停止指令
-            const mouseUpHandler = () => sendControl('stop', 0.0);
-            document.addEventListener('mouseup', mouseUpHandler);
-            document.addEventListener('touchend', mouseUpHandler);
-            document.addEventListener('touchcancel', mouseUpHandler);
-            document.addEventListener('touchleave', mouseUpHandler);
+            let baseSpeed = normalizedY * 100;
+            let turnSpeed = normalizedX * 100;
 
-            // 启动 WebSocket 连接
-            connectWebSocket();
+            let leftSpeed = baseSpeed + turnSpeed;
+            let rightSpeed = baseSpeed - turnSpeed;
+
+            leftSpeed = Math.min(100, Math.max(-100, leftSpeed));
+            rightSpeed = Math.min(100, Math.max(-100, rightSpeed));
+
+            leftSpeedDisplay.textContent = Math.round(leftSpeed);
+            rightSpeedDisplay.textContent = Math.round(rightSpeed);
+            const avgSpeed = (Math.abs(leftSpeed) + Math.abs(rightSpeed)) / 2;
+            speedFill.style.width = `${avgSpeed}%`;
+
+            throttledSend(leftSpeed, rightSpeed);
+        }
+
+        joystickHandle.addEventListener('mousedown', startDrag);
+        joystickHandle.addEventListener('touchstart', startDrag, { passive: false });
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchend', stopDrag);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag, { passive: false });
+
+        // === 主题切换 ===
+        document.getElementById('theme-toggle-btn').addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+        });
+
+        // === 语言切换（简化版，仅切换按钮文本）===
+        let lang = 'zh';
+        const langBtn = document.getElementById('lang-toggle-btn');
+        langBtn.addEventListener('click', () => {
+            lang = lang === 'zh' ? 'en' : 'zh';
+            langBtn.textContent = lang === 'zh' ? 'English' : '中文';
         });
     </script>
 </body>
