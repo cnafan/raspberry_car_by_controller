@@ -26,7 +26,7 @@
 
 ```
 car_project/
-├── app/
+├── raspberry_car_by_controller/
 │   ├── main.py             # FastAPI 应用入口
 │   ├── routes.py           # HTTP / WebSocket 路由
 │   ├── ws_manager.py       # WebSocket 连接管理器

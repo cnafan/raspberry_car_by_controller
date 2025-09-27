@@ -270,37 +270,44 @@
         const containerRect = joystickContainer.getBoundingClientRect();
         const radius = containerRect.width / 2;
 
-        // 映射左右轮速度到 direction + speed（兼容现有后端）
         function mapToDirection(left, right) {
-            const threshold = 10; // 避免抖动
-            const speed = Math.max(Math.abs(left), Math.abs(right)) / 100.0;
+            const threshold = 10; // 避免摇杆抖动
+            const maxSpeed = 1.0;
 
-            if (Math.abs(left) < threshold && Math.abs(right) < threshold) {
-                return { direction: 'stop', speed: 0 };
+            // 将摇杆值归一化到 [-1, 1]
+            let normLeft = left / 100.0;
+            let normRight = right / 100.0;
+
+            // 小抖动判定为停止
+            if (Math.abs(normLeft) < threshold / 100 && Math.abs(normRight) < threshold / 100) {
+                return { direction: 'stop', leftSpeed: 0, rightSpeed: 0 };
             }
 
-            if (left > 0 && right > 0 && Math.abs(left - right) < threshold) {
-                return { direction: 'forward', speed };
-            }
-            if (left < 0 && right < 0 && Math.abs(left - right) < threshold) {
-                return { direction: 'backward', speed };
-            }
-            if (left > threshold && Math.abs(right) < threshold) {
-                return { direction: 'right', speed: speed / 2 };
-            }
-            if (right > threshold && Math.abs(left) < threshold) {
-                return { direction: 'left', speed: speed / 2 };
-            }
-            // 默认前进
-            return { direction: 'forward', speed };
+            // 差速转向计算
+            let leftSpeed = normLeft;
+            let rightSpeed = normRight;
+
+            // 根据左右轮速度判断方向
+            let direction = 'forward';
+            if (leftSpeed > 0 && rightSpeed > 0) direction = 'forward';
+            else if (leftSpeed < 0 && rightSpeed < 0) direction = 'backward';
+            else if (leftSpeed > rightSpeed) direction = 'right';
+            else if (rightSpeed > leftSpeed) direction = 'left';
+
+            return { direction, leftSpeed, rightSpeed };
         }
 
         function sendCommand(left, right) {
             if (ws.readyState === WebSocket.OPEN) {
-                const { direction, speed } = mapToDirection(left, right);
-                ws.send(`${direction},${speed.toFixed(2)}`);
+                const { direction, leftSpeed, rightSpeed } = mapToDirection(left, right);
+                ws.send(JSON.stringify({
+                    direction,
+                    leftSpeed: leftSpeed.toFixed(2),
+                    rightSpeed: rightSpeed.toFixed(2)
+                }));
             }
         }
+
 
         // 节流
         const throttle = (fn, delay) => {

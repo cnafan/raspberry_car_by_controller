@@ -4,7 +4,7 @@ import os
 # --- 项目配置 ---
 # 是否在没有硬件的情况下运行（用于开发和测试）
 # 设置为 True 后，GPIO 操作将被模拟，避免在非树莓派环境下报错
-SIMULATION_MODE = os.getenv("SIMULATION_MODE", "True").lower() == "true"
+SIMULATION_MODE = os.getenv("SIMULATION_MODE", "False").lower() == "true"
 
 # --- GPIO 引脚映射 (BCM 模式) ---
 # 使用两个 TB6612FNG 驱动板：
