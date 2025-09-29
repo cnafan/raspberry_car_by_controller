@@ -6,28 +6,25 @@ import os
 # 设置为 True 后，GPIO 操作将被模拟，避免在非树莓派环境下报错
 SIMULATION_MODE = os.getenv("SIMULATION_MODE", "False").lower() == "true"
 
+
 # --- GPIO 引脚映射 (BCM 模式) ---
 # 使用两个 TB6612FNG 驱动板：
-# - 驱动板 1：控制左前轮（A通道）和左后轮（B通道）
-# - 驱动板 2：控制右前轮（A通道）和右后轮（B通道）
+# - 驱动板 1：左侧两个轮子（前后），共用一个 PWM
+# - 驱动板 2：右侧两个轮子（前后），共用一个 PWM
 
 # === 驱动板 1（左侧：左前 + 左后） ===
-DRIVER1_PWMA = 12   # 左前轮 PWM
+DRIVER1_PWMA = 12   # 左侧共用 PWM
 DRIVER1_AIN1 = 6    # 左前轮方向1
 DRIVER1_AIN2 = 5    # 左前轮方向2
-
-DRIVER1_PWMB = 13   # 左后轮 PWM
 DRIVER1_BIN1 = 19   # 左后轮方向1
 DRIVER1_BIN2 = 26   # 左后轮方向2
 
 DRIVER1_STBY = 4    # 驱动板1使能引脚
 
 # === 驱动板 2（右侧：右前 + 右后） ===
-DRIVER2_PWMA = 18   # 右前轮 PWM
+DRIVER1_PWMB = 13   # 右侧共用 PWM
 DRIVER2_AIN1 = 20   # 右前轮方向1
 DRIVER2_AIN2 = 21   # 右前轮方向2
-
-DRIVER2_PWMB = 23   # 右后轮 PWM
 DRIVER2_BIN1 = 24   # 右后轮方向1
 DRIVER2_BIN2 = 25   # 右后轮方向2
 
