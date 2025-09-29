@@ -7,11 +7,11 @@ from .car_state import car_state
 from .config import (
     SIMULATION_MODE,
     DRIVER1_STBY,
-    DRIVER1_AIN1, DRIVER1_AIN2, DRIVER1_PWMA,  # 左前
-    DRIVER1_BIN1, DRIVER1_BIN2, DRIVER1_PWMB,  # 左后
+    DRIVER1_AIN1, DRIVER1_AIN2, DRIVER1_PWMA,  # 左组 PWM 用 DRIVER1_PWMA
+    DRIVER1_BIN1, DRIVER1_BIN2, DRIVER1_PWMB,  # 右组 PWM 用 DRIVER1_PWMB
     DRIVER2_STBY,
-    DRIVER2_AIN1, DRIVER2_AIN2, DRIVER2_PWMA,  # 右前
-    DRIVER2_BIN1, DRIVER2_BIN2, DRIVER2_PWMB,  # 右后
+    DRIVER2_AIN1, DRIVER2_AIN2,
+    DRIVER2_BIN1, DRIVER2_BIN2,
     PWM_FREQUENCY,
     TIMEOUT_SECONDS,
     SPEED_STEP
@@ -28,31 +28,25 @@ class MotorController(threading.Thread):
         super().__init__(name="MotorControllerThread", daemon=True)
         self.running = True
 
-        # 左前轮
+        # === 左侧（共用一个 PWM） ===
+        self.left_pwm = PWMOutputDevice(DRIVER1_PWMA, frequency=PWM_FREQUENCY, initial_value=0)
         self.lf_in1 = DigitalOutputDevice(DRIVER1_AIN1)
         self.lf_in2 = DigitalOutputDevice(DRIVER1_AIN2)
-        self.lf_pwm = PWMOutputDevice(DRIVER1_PWMA, frequency=PWM_FREQUENCY, initial_value=0)
-
-        # 左后轮
         self.lb_in1 = DigitalOutputDevice(DRIVER1_BIN1)
         self.lb_in2 = DigitalOutputDevice(DRIVER1_BIN2)
-        self.lb_pwm = PWMOutputDevice(DRIVER1_PWMB, frequency=PWM_FREQUENCY, initial_value=0)
 
-        # 右前轮
+        # === 右侧（共用一个 PWM） ===
+        self.right_pwm = PWMOutputDevice(DRIVER1_PWMB, frequency=PWM_FREQUENCY, initial_value=0)
         self.rf_in1 = DigitalOutputDevice(DRIVER2_AIN1)
         self.rf_in2 = DigitalOutputDevice(DRIVER2_AIN2)
-        self.rf_pwm = PWMOutputDevice(DRIVER2_PWMA, frequency=PWM_FREQUENCY, initial_value=0)
-
-        # 右后轮
         self.rb_in1 = DigitalOutputDevice(DRIVER2_BIN1)
         self.rb_in2 = DigitalOutputDevice(DRIVER2_BIN2)
-        self.rb_pwm = PWMOutputDevice(DRIVER2_PWMB, frequency=PWM_FREQUENCY, initial_value=0)
 
         # STBY 引脚
         self.stby1 = DigitalOutputDevice(DRIVER1_STBY, initial_value=True)
         self.stby2 = DigitalOutputDevice(DRIVER2_STBY, initial_value=True)
 
-    def _set_wheel(self, name, in1, in2, pwm, speed):
+    def _set_wheel(self, name, in1, in2, speed):
         if speed > 0:
             in1.on()
             in2.off()
@@ -62,15 +56,17 @@ class MotorController(threading.Thread):
         else:
             in1.off()
             in2.off()
-        pwm.value = abs(speed)
-        #print(f"[DEBUG] {name}: speed={speed:.2f}, pwm={pwm.value:.2f}, in1={in1.value}, in2={in2.value}")
 
     def _set_motors(self, left_speed: float, right_speed: float):
-        self._set_wheel("LF", self.lf_in1, self.lf_in2, self.lf_pwm, left_speed)
-        self._set_wheel("LB", self.lb_in1, self.lb_in2, self.lb_pwm, left_speed)
-        self._set_wheel("RF", self.rf_in1, self.rf_in2, self.rf_pwm, right_speed)
-        self._set_wheel("RB", self.rb_in1, self.rb_in2, self.rb_pwm, right_speed)
-        #print(f"[DEBUG] STBY1={self.stby1.value}, STBY2={self.stby2.value}")
+        # 左侧方向
+        self._set_wheel("LF", self.lf_in1, self.lf_in2, left_speed)
+        self._set_wheel("LB", self.lb_in1, self.lb_in2, left_speed)
+        self.left_pwm.value = abs(left_speed)
+
+        # 右侧方向
+        self._set_wheel("RF", self.rf_in1, self.rf_in2, right_speed)
+        self._set_wheel("RB", self.rb_in1, self.rb_in2, right_speed)
+        self.right_pwm.value = abs(right_speed)
 
     def _calculate_speed(self, current_speed, target_speed):
         if abs(current_speed - target_speed) > SPEED_STEP:
