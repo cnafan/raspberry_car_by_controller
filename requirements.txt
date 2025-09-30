@@ -1,0 +1,47 @@
+# ===============================================
+# PetCar AI Project - Shared Dependencies
+# ===============================================
+
+# Asynchronous communication library (used by both server and car)
+# 推荐使用较新的版本以支持最新的 asyncio 特性
+websockets>=11.0
+# 数据序列化
+pydantic>=2.0 # 用于 dataclass 或 BaseModel (如果使用 fastAPI/starlette)
+
+# ===============================================
+# Server-Side Dependencies (RTX 4060 GPU)
+# -----------------------------------------------
+# Note: For optimal performance on RTX 4060, ensure CUDA and a compatible PyTorch version are installed first.
+
+# 深度学习框架
+torch>=2.0.0
+torchaudio>=2.0.0
+
+# LLM: Hugging Face 生态
+transformers>=4.30.0
+accelerate>=0.20.0
+# 用于 Qwen3 的量化加载 (如 4-bit)
+bitsandbytes>=0.40.0
+optimum>=1.15.0 # 可选：用于优化和量化
+
+# LLM/ASR/TTS 模型的 SDK (需要替换为实际的安装包或路径)
+# SenseVoice SDK for ASR
+# sensevoice-sdk==X.Y.Z 
+
+# CosyVoice SDK for TTS
+# cosyvoice-sdk==A.B.C
+
+# ===============================================
+# Car-Side Dependencies (Raspberry Pi)
+# -----------------------------------------------
+
+# 音频输入/输出
+pyaudio>=0.2.13 
+
+# 硬件控制 (树莓派 GPIO)
+# RPi.GPIO (请确保在树莓派环境中安装)
+RPi.GPIO
+
+# 可选的本地语音活动检测 (VAD)
+# webrtcvad (需要 libwebrtc 依赖，可能需要编译)
+webrtcvad
