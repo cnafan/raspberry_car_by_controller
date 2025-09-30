@@ -1,4 +1,3 @@
-```markdown
 # 🐾 PetCar AI 项目文档
 
 PetCar AI 是一个基于 **语音交互 + LLM + TTS** 的智能宠物小车项目。它通过服务端部署的强大 AI 模型，为小车提供实时语音识别、自然语言理解和语音合成能力，实现人车流畅的语音对话和动作控制。
@@ -40,8 +39,6 @@ PetCar AI 是一个基于 **语音交互 + LLM + TTS** 的智能宠物小车项�
 
 ## 📦 项目目录结构
 
-```
-
 petcar-ai/
 ├── server/             \# 服务端 (AI 模型部署与 API)
 │ ├── models/           \# ASR/LLM/TTS 引擎
@@ -53,7 +50,6 @@ petcar-ai/
 │ └── main.py           \# 启动入口和硬件控制
 └── README.md
 
-````
 
 ---
 
