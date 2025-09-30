@@ -1,3 +1,4 @@
+```markdown
 # 🐾 PetCar AI 项目文档
 
 PetCar AI 是一个基于 **语音交互 + LLM + TTS** 的智能宠物小车项目。它通过服务端部署的强大 AI 模型，为小车提供实时语音识别、自然语言理解和语音合成能力，实现人车流畅的语音对话和动作控制。
@@ -38,3 +39,87 @@ PetCar AI 是一个基于 **语音交互 + LLM + TTS** 的智能宠物小车项�
 ---
 
 ## 📦 项目目录结构
+
+```
+
+petcar-ai/
+├── server/             \# 服务端 (AI 模型部署与 API)
+│ ├── models/           \# ASR/LLM/TTS 引擎
+│ ├── pipeline/         \# 语音交互核心逻辑 (ASR-\>LLM-\>TTS)
+│ └── api/              \# WebSocket/HTTP 接口
+├── car/                \# 小车端 (树莓派客户端)
+│ ├── audio/            \# 音频I/O 和 VAD
+│ ├── comm/             \# WebSocket 客户端连接管理
+│ └── main.py           \# 启动入口和硬件控制
+└── README.md
+
+````
+
+---
+
+## ⚙️ 快速启动指南
+
+### 1. 服务端环境准备
+
+1. **安装 CUDA 和 PyTorch**：确保您的 RTX 4060 具备正确的 GPU 驱动和 CUDA/PyTorch 环境。
+2. **安装依赖**：
+    ```bash
+    # 假设使用 Conda/venv 环境
+    pip install torch transformers accelerate optimum onnxruntime websockets pyaudio
+    # 安装 SenseVoice 和 CosyVoice SDK (请参考官方文档)
+    # pip install sensevoice-sdk cosyvoice-sdk
+    ```
+3. **模型下载**：将 Qwen3-1.7B (量化版)、SenseVoice 和 CosyVoice 模型文件下载到 `server/models` 目录下，并更新 `server/config.py` 中的路径。
+
+### 2. 小车端环境准备 (树莓派)
+
+1. **安装依赖**：
+    ```bash
+    pip install websockets pyaudio RPi.GPIO
+    # 安装 VAD (如果启用)
+    # pip install webrtcvad
+    ```
+2. **硬件连接**：根据 `car/config.py` 中的 `MOTOR_PINS` 配置，连接好麦克风、扬声器和电机驱动板。
+
+### 3. 运行项目
+
+#### 启动服务端
+
+```bash
+# 进入服务端目录
+cd petcar-ai/server
+# 启动 AI 服务和 WebSocket 接口
+python run.py
+````
+
+*服务启动后会监听配置的 IP 和端口 (默认为 `ws://0.0.0.0:8765`)*
+
+#### 启动小车端
+
+```bash
+# 进入小车端目录
+cd petcar-ai/car
+# 确保 car/config.py 中的 SERVER_HOST 指向服务端 IP
+python main.py
+```
+
+*小车端将尝试连接服务端，并开始监听麦克风。*
+
+-----
+
+## 🗣️ 交互示例
+
+当小车端启动后，您可以进行以下操作：
+
+1.  **唤醒**：靠近小车，说出 **"小车小车"**。
+2.  **发出指令**：紧接着说出您的指令，例如：**"向前走五步"**。
+
+**预期结果：**
+
+  - **服务端**：ASR 识别文本 → LLM 生成回复 "好的，我这就向前走五步。 [ACTION:forward(5)]"
+  - **小车端**：扬声器播放 LLM 的语音回复，并根据 `[ACTION:forward(5)]` 指令驱动电机向前移动。
+
+<!-- end list -->
+
+```
+```
